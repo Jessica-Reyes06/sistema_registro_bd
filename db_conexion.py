@@ -2,13 +2,11 @@ import os
 import mysql.connector
 
 # Leer contraseña desde variable de entorno
-password = os.getenv("MYSQL_PASSWORD")
-
-# Conexión única y compartida a MySQL
 conexion = mysql.connector.connect(
-    host="localhost",
+    host="mainline.proxy.rlwy.net",
+    port=33989,
     user="root",
-    password=password,
+    password="eCjzlyNIPozVeLnSIFfMVLiaeAJRURPE",
     database="control_escolar"
 )
 

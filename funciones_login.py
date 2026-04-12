@@ -1,14 +1,12 @@
 from db_conexion import conexion
 import customtkinter
 
-
 def cambiar_modo():
     modo_actual = customtkinter.get_appearance_mode()
     if modo_actual == "Light":
         customtkinter.set_appearance_mode("dark")
     else:
         customtkinter.set_appearance_mode("light")
-
 
 def buscar_usuario(usuario):
     cursor = conexion.cursor()
@@ -82,8 +80,8 @@ def mostrar_ocultar(entry_widget, button_widget):
     if actual == "":
         # Actualmente visible 
         entry_widget.configure(show="*")
-        button_widget.configure(text="Mostrar")
+        button_widget.configure(text="Mostrar Contraseña")
     else:
         # Actualmente oculta 
         entry_widget.configure(show="")
-        button_widget.configure(text="Ocultar")
+        button_widget.configure(text="Ocultar Contraseña")

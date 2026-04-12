@@ -59,12 +59,11 @@ def iniciar_admin():
     sidebar = customtkinter.CTkFrame(ventana_principal, width=220, fg_color="#003152")
     sidebar.grid(row=0, column=0, sticky="ns")
 
-    # Texto "Nombre del sistema" arriba del icono
+    logo_img = CTkImage(light_image=Image.open("carpeta_iconos/general/logo.jpeg"), size=(180, 60))
     customtkinter.CTkLabel(
         sidebar,
-        text="Nombre del sistema",
-        font=("Arial Rounded MT Bold", 16),
-        text_color="white"
+        text="",
+        image=logo_img
     ).pack(pady=(20, 5))
 
     # Avatar en la parte superior del panel izquierdo
@@ -92,6 +91,7 @@ def iniciar_admin():
     img_calendario = crear_icono("carpeta_iconos/iconos_alumnos/calendario.png", (24, 24))
     img_pendientes = crear_icono("carpeta_iconos/iconos_alumnos/lista.png", (24, 24))
     img_notificaciones = crear_icono("carpeta_iconos/iconos_alumnos/reloj.png", (24, 24))
+    img_respaldo = crear_icono("carpeta_iconos/iconos_alumnos/archivo-de-carpetas.png", (24, 24))
 
     # Frame clickeable para "Inicio"
     frame_inicio = customtkinter.CTkFrame(sidebar, fg_color="transparent")
@@ -198,6 +198,46 @@ def iniciar_admin():
 
     frame_modo.bind("<Button-1>", lambda event: cambiar_modo())
 
+    # Botón "Crear respaldo"
+    frame_respaldo = customtkinter.CTkFrame(sidebar, fg_color="transparent")
+    frame_respaldo.pack(pady=5, padx=20, fill="x")
+
+    btn_respaldo = customtkinter.CTkButton(
+        frame_respaldo,
+        text="   Crear respaldo",
+        fg_color="transparent",
+        hover_color="#1c669f",
+        text_color="white",
+        width=150,
+        height=40,
+        image=img_respaldo,
+        anchor="w",
+        command=crear_respaldo_completo,
+    )
+    btn_respaldo.pack(fill="x")
+
+    frame_respaldo.bind("<Button-1>", lambda event: crear_respaldo_completo())
+
+    # Botón "Restaurar respaldo"
+    frame_restaurar = customtkinter.CTkFrame(sidebar, fg_color="transparent")
+    frame_restaurar.pack(pady=5, padx=20, fill="x")
+
+    btn_restaurar = customtkinter.CTkButton(
+        frame_restaurar,
+        text="   Rest. respaldo",
+        fg_color="transparent",
+        hover_color="#1c669f",
+        text_color="white",
+        width=150,
+        height=40,
+        image=img_respaldo,
+        anchor="w",
+        command=restaurar_desde_respaldo,
+    )
+    btn_restaurar.pack(fill="x")
+
+    frame_restaurar.bind("<Button-1>", lambda event: restaurar_desde_respaldo())
+
     # "Cerrar sesión"
     frame_cerrar = customtkinter.CTkFrame(sidebar, fg_color="transparent")
     frame_cerrar.pack(side="bottom", pady=20, padx=20, fill="x")
@@ -222,6 +262,8 @@ def iniciar_admin():
 
     ventana_principal.mainloop()
 
+
+from funciones_admin import mostrar_horarios
 
 if __name__ == "__main__":
     iniciar_admin()

@@ -1,8 +1,92 @@
+from customtkinter import CTkFrame, CTkLabel, CTkEntry, CTkButton
+import tkinter as tk
 from customtkinter import *
 from PIL import Image
-from tkinter import filedialog, messagebox
 from config_principal import calendario, limpiar_frame, crear_tarjeta
 from formularios_bd import *
+import datetime
+import os
+def crear_tabla_editable(parent, headers, registros, tabla_sql, actualizar_callback=None):
+ 
+    tabla = CTkFrame(parent)
+    tabla.pack(fill="both", expand=True)
+
+    encabezado = CTkFrame(tabla, fg_color="#e0e0e0")
+    encabezado.pack(fill="x")
+    for i, h in enumerate(headers):
+        encabezado.grid_columnconfigure(i, weight=1)
+        CTkLabel(encabezado, text=h, text_color="white", font=("Arial", 14, "bold"), anchor="w", justify="left").grid(row=0, column=i, padx=10, pady=10, sticky="w")
+    encabezado.grid_columnconfigure(len(headers), weight=1)
+
+    cuerpo = CTkFrame(tabla)
+    cuerpo.pack(fill="both", expand=True)
+
+    fila_editando = {"idx": None}
+    entries = {}
+    btn_editar_ref = {}
+
+    def editar_fila(idx):
+        fila = registros[idx]
+        for widget in cuerpo.grid_slaves(row=idx):
+            widget.destroy()
+        for col_idx, valor in enumerate(fila):
+            e = CTkEntry(cuerpo)
+            e.insert(0, str(valor))
+            e.grid(row=idx, column=col_idx, padx=10, pady=4, sticky="ew")
+            entries[col_idx] = e
+        def confirmar():
+            nuevos = [entries[i].get() for i in range(len(headers))]
+            if actualizar_callback:
+                actualizar_callback(tabla_sql, fila[0], nuevos)
+            fila_editando["idx"] = None
+            mostrar_filas()
+        CTkButton(cuerpo, text="Confirmar", fg_color="#007b3a", command=confirmar).grid(row=idx, column=len(headers), padx=10, pady=4)
+    
+    def on_row_enter(event, idx):
+        btn = btn_editar_ref.get(idx)
+        if btn:
+            btn.grid()
+
+    def on_row_leave(event, idx):
+        btn = btn_editar_ref.get(idx)
+        if btn:
+            btn.grid_remove()
+
+    def mostrar_filas():
+        for widget in cuerpo.winfo_children():
+            widget.destroy()
+        btn_editar_ref.clear()
+        for fila_idx, fila in enumerate(registros):
+            row_widgets = []
+            for col_idx, valor in enumerate(fila):
+                l = CTkLabel(cuerpo, text=str(valor), font=("Arial", 13), anchor="w", justify="left", wraplength=200, text_color="#000000")
+                l.grid(row=fila_idx, column=col_idx, padx=10, pady=4, sticky="ew")
+                row_widgets.append(l)
+            def hacer_editar(idx=fila_idx):
+                return lambda: editar_fila(idx)
+            btn_editar = CTkButton(cuerpo, text="Editar", fg_color="#715a72", command=hacer_editar(fila_idx))
+            btn_editar.grid(row=fila_idx, column=len(headers), padx=10, pady=4)
+            btn_editar.grid_remove()
+            btn_editar_ref[fila_idx] = btn_editar
+            # Vincular eventos de mouse para mostrar/ocultar el botón
+            for w in row_widgets:
+                w.bind("<Enter>", lambda e, idx=fila_idx: on_row_enter(e, idx))
+                w.bind("<Leave>", lambda e, idx=fila_idx: on_row_leave(e, idx))
+
+    mostrar_filas()
+    return tabla
+
+def ejecutar_update(sql, valores):
+
+    import mysql.connector
+    from db_conexion import obtener_conexion
+    conexion = obtener_conexion()
+    try:
+        with conexion.cursor() as cursor:
+            cursor.execute(sql, valores)
+        conexion.commit()
+    finally:
+        conexion.close()
 
 pendientes_admin = []
 
@@ -15,7 +99,7 @@ def mostrar_dashboard(frame):
     titulo = CTkLabel(header,text="Panel de Administración",text_color="white",font=("Arial",28,"bold"))
     titulo.pack(pady=15)
 
-    contenedor = CTkFrame(frame)
+    contenedor = CTkFrame(frame, fg_color="#b8d0e1")
     contenedor.pack(fill="both", expand=True, padx=20, pady=(10, 0))
 
     for c in range(5):
@@ -29,14 +113,18 @@ def mostrar_dashboard(frame):
     icono_materias = CTkImage(light_image=Image.open("carpeta_iconos/iconos_admin/materias.png"),size=(64,64))
     icono_grupos = CTkImage(light_image=Image.open("carpeta_iconos/iconos_admin/grupos.png"),size=(64,64))
     icono_inscripciones = CTkImage(light_image=Image.open("carpeta_iconos/iconos_admin/inscripciones.png"),size=(64,64))
+    icono_usuarios = CTkImage(light_image=Image.open("carpeta_iconos/iconos_admin/usuario.png"),size=(64,64))
+    icono_horarios = CTkImage(light_image=Image.open("carpeta_iconos/iconos_alumnos/reloj.png"),size=(64,64)) 
 
     crear_tarjeta(contenedor,"Alumnos",lambda: mostrar_alumnos(frame),"#510054",icono_alumnos).grid(row=0,column=0,padx=10,pady=10)
     crear_tarjeta(contenedor,"Maestros",lambda: mostrar_maestros(frame),"#004235",icono_maestros).grid(row=0,column=1,padx=10,pady=10)
     crear_tarjeta(contenedor,"Materias",lambda: mostrar_materias(frame),"#761127",icono_materias).grid(row=0,column=2,padx=10,pady=10)
     crear_tarjeta(contenedor,"Grupos",lambda: mostrar_grupos(frame),"#1f6aa5",icono_grupos).grid(row=0,column=3,padx=10,pady=10)
-    crear_tarjeta(contenedor,"Inscripciones",lambda: mostrar_inscripciones(frame),"#7A3500",icono_inscripciones).grid(row=0,column=4,padx=10,pady=10)
+    crear_tarjeta(contenedor,"Horarios",lambda: mostrar_horarios(frame),"#1f6aa5",icono_horarios).grid(row=0,column=4,padx=10,pady=10)
+    crear_tarjeta(contenedor,"Inscripciones",lambda: mostrar_inscripciones(frame),"#7A3500",icono_inscripciones).grid(row=1,column=0,padx=10,pady=10)
+    crear_tarjeta(contenedor,"Usuarios",lambda: mostrar_usuarios(frame),"#2b4d7a",icono_usuarios).grid(row=1,column=1,padx=10,pady=10)
 
-    zona_inferior = CTkFrame(frame, height=120)
+    zona_inferior = CTkFrame(frame, height=120, fg_color="#f1f3f5")
     zona_inferior.pack(side="bottom", fill="x", padx=20, pady=(0,15))
     zona_inferior.pack_propagate(False)
 
@@ -147,43 +235,43 @@ def mostrar_seccion_gestion(frame,titulo,color_header,color_menu,color_tabla,bot
     area_contenido.pack(fill="both",expand=True,padx=20,pady=10)
 
     def mostrar_tabla_base():
-        limpiar_frame(area_contenido)
+            limpiar_frame(area_contenido)
 
-        tabla = CTkFrame(area_contenido)
-        tabla.pack(fill="both",expand=True)
+            if not tabla_sql:
+                CTkLabel(area_contenido, text="No hay registros").pack()
+                return
 
-        encabezado = CTkFrame(tabla,fg_color=color_tabla)
-        encabezado.pack(fill="x")
-
-        for i,h in enumerate(headers):
-            encabezado.grid_columnconfigure(i,weight=1)
-            CTkLabel(encabezado,text=h,text_color="white",font=("Arial",14,"bold")).grid(row=0,column=i,padx=10,pady=10,sticky="ew")
-
-        # Cuerpo de la tabla con los registros de la base de datos
-        cuerpo = CTkScrollableFrame(tabla, fg_color="#ffffff")
-        cuerpo.pack(fill="both", expand=True)
-
-        if tabla_sql:
             try:
+
                 registros = ejecutar_select(f"SELECT * FROM {tabla_sql}")
 
                 if not registros:
-                    CTkLabel(cuerpo, text="No hay registros", font=("Arial", 14)).pack(pady=10)
-                else:
-                    for fila_idx, fila in enumerate(registros):
-                        limite_columnas = min(len(headers), len(fila))
-                        for col_idx in range(limite_columnas):
-                            valor = fila[col_idx]
-                            cuerpo.grid_columnconfigure(col_idx, weight=1)
-                            CTkLabel(
-                                cuerpo,
-                                text=str(valor),
-                                font=("Arial", 13),
-                                anchor="w",
-                                text_color="#000000"
-                            ).grid(row=fila_idx, column=col_idx, padx=10, pady=4, sticky="ew")
+                    CTkLabel(area_contenido, text="No hay registros").pack()
+                    return
+
+                # columnas reales de la tabla
+                cursor = conexion.cursor()
+                cursor.execute(f"SHOW COLUMNS FROM {tabla_sql}")
+                columnas = [col[0] for col in cursor.fetchall()]
+                cursor.close()
+
+                crear_tabla_editable_con_doble_click(
+                    area_contenido,
+                    headers,
+                    registros,
+                    tabla_sql,
+                    columnas,
+                    columnas[0],
+                    volver_a_lista=mostrar_tabla_base
+                )
+
             except Exception as e:
-                CTkLabel(cuerpo, text=f"Error al cargar datos: {e}", text_color="red").pack(pady=10)
+
+                CTkLabel(
+                    area_contenido,
+                    text=f"Error al cargar datos: {e}",
+                    text_color="red"
+                ).pack(pady=10)
 
     mostrar_tabla_base()
 
@@ -204,11 +292,11 @@ def ejecutar_importacion(tabla,volver):
         return
     try:
         importar_csv(tabla,ruta)
-        messagebox.showinfo("Importar CSV","Datos importados correctamente.")
+        tk.messagebox.showinfo("Importar CSV","Datos importados correctamente.")
         if volver:
             volver()
     except Exception as e:
-        messagebox.showerror("Error",str(e))
+        tk.messagebox.showerror("Error",str(e))
 
 def ejecutar_exportacion(tabla,nombre):
     ruta = guardar_csv(nombre)
@@ -216,9 +304,62 @@ def ejecutar_exportacion(tabla,nombre):
         return
     try:
         exportar_csv(tabla,ruta)
-        messagebox.showinfo("Exportar CSV","Datos exportados correctamente.")
+        tk.messagebox.showinfo("Exportar CSV","Datos exportados correctamente.")
     except Exception as e:
-        messagebox.showerror("Error",str(e))
+        tk.messagebox.showerror("Error",str(e))
+
+
+def crear_respaldo_completo():
+    """Respaldo completo de la base de datos en archivos CSV individuales por tabla."""
+
+    carpeta = filedialog.askdirectory(title="Selecciona carpeta para el respaldo")
+    if not carpeta:
+        return
+
+    marca_tiempo = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    tablas = ["alumnos", "maestros", "materias", "grupos", "registros"]
+
+    try:
+        for tabla in tablas:
+            nombre_archivo = f"{tabla}_{marca_tiempo}.csv"
+            ruta = f"{carpeta}/{nombre_archivo}"
+            exportar_csv(tabla, ruta)
+
+        tk.messagebox.showinfo("Respaldo", "Respaldo creado correctamente.")
+    except Exception as e:
+        tk.messagebox.showerror("Respaldo", f"Error al crear respaldo:\n{e}")
+
+
+def restaurar_desde_respaldo():
+    """Restaura datos desde los CSV de respaldo más recientes en una carpeta.
+
+    Para cada tabla principal busca el archivo con nombre
+    "tabla_YYYYMMDD_HHMMSS.csv" más reciente y lo importa.
+    """
+
+    carpeta = filedialog.askdirectory(title="Selecciona carpeta con respaldos")
+    if not carpeta:
+        return
+
+    tablas = ["alumnos", "maestros", "materias", "grupos", "registros"]
+
+    try:
+        for tabla in tablas:
+            prefijo = f"{tabla}_"
+            archivos = [f for f in os.listdir(carpeta) if f.startswith(prefijo) and f.endswith(".csv")]
+            if not archivos:
+                continue
+
+            archivos.sort()  # por nombre; con YYYYMMDD_HHMMSS el último es el más reciente
+            archivo_reciente = archivos[-1]
+            ruta = os.path.join(carpeta, archivo_reciente)
+
+            importar_csv(tabla, ruta)
+
+        tk.messagebox.showinfo("Restaurar", "Datos restaurados desde los respaldos más recientes.")
+    except Exception as e:
+        tk.messagebox.showerror("Restaurar", f"Error al restaurar datos:\n{e}")
 
 def mostrar_alumnos(frame):
 
@@ -300,7 +441,7 @@ def mostrar_grupos(frame):
         {"texto":"Exportar CSV","color":"#184c73","comando":exportar},
     ]
 
-    headers = ["ID Grupo","Maestro","Materia","Horario","Cupo"]
+    headers = ["ID Grupo","Maestro","Materia","Cupo"]
 
     mostrar_seccion_gestion(frame,"Gestión de Grupos","#1f6aa5","#ffffff","#8fb1cb",botones,headers,"grupos")
 
@@ -324,3 +465,46 @@ def mostrar_inscripciones(frame):
     headers = ["ID","No.Control","ID Grupo","Fecha","Estatus","Tipo"]
 
     mostrar_seccion_gestion(frame,"Inscripciones","#7A3500","#ffffff","#C75C00",botones,headers,"registros")
+
+
+def mostrar_usuarios(frame):
+
+    def registrar(area,volver):
+        mostrar_form_registro_usuario(area,volver)
+
+    def importar(area,volver):
+        ejecutar_importacion("usuarios",volver)
+
+    def exportar(area,volver):
+        ejecutar_exportacion("usuarios","usuarios.csv")
+
+    botones = [
+        {"texto":"Registrar usuario","color":"#2b4d7a","comando":registrar},
+        {"texto":"Importar CSV","color":"#2b4d7a","comando":importar},
+        {"texto":"Exportar CSV","color":"#2b4d7a","comando":exportar},
+    ]
+
+    headers = ["ID","Usuario","Contraseña","Rol"]
+
+    mostrar_seccion_gestion(frame,"Gestión de Usuarios","#2b4d7a","#ffffff","#4c6fa0",botones,headers,"usuarios")
+
+# === HORARIOS ===
+def mostrar_horarios(frame):
+    def registrar(area,volver):
+        mostrar_form_registro_horario(area,volver)
+
+    def importar(area,volver):
+        ejecutar_importacion("horario",volver)
+
+    def exportar(area,volver):
+        ejecutar_exportacion("horario","horario.csv")
+
+    botones = [
+        {"texto":"Registrar horario","color":"#1f6aa5","comando":registrar},
+        {"texto":"Importar CSV","color":"#1f6aa5","comando":importar},
+        {"texto":"Exportar CSV","color":"#1f6aa5","comando":exportar},
+    ]
+
+    headers = ["ID Horario","ID Grupo","Día","Hora inicio","Hora fin","ID Salón"]
+
+    mostrar_seccion_gestion(frame,"Gestión de Horarios","#1f6aa5","#ffffff","#8fb1cb",botones,headers,"horario")
