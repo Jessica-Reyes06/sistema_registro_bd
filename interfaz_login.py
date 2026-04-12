@@ -55,6 +55,9 @@ def on_login():
         elif mensaje["rol"] == "alumno":
             from Inicio_Alumnos import iniciar_alumno
             iniciar_alumno(mensaje["usuario"])
+        elif mensaje["rol"] == "maestro":
+            from Inicio_maestros import iniciar_maestro
+            iniciar_maestro(mensaje["usuario"])
     
 
 boton_login = CTkButton(frame, text="Iniciar sesión", command=on_login, fg_color="#314560")
