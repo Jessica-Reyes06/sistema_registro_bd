@@ -1,3 +1,6 @@
+import os
+import sys
+
 from customtkinter import *
 from PIL import Image
 from tkcalendar import Calendar
@@ -19,6 +22,11 @@ BONUS_UNIDAD_TABLE = None
 BONUS_MATERIA_TABLE = None
 
 
+def ruta_recurso(ruta_relativa):
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, ruta_relativa)
+
+
 def limpiar_frame(frame):
     for w in frame.winfo_children():
         w.destroy()
@@ -38,7 +46,7 @@ def cerrar_sesion():
 
 
 def crear_icono(ruta, size=(20, 20)):
-    return CTkImage(light_image=Image.open(ruta), size=size)
+    return CTkImage(light_image=Image.open(ruta_recurso(ruta)), size=size)
 
 
 def obtener_datos_maestro(matricula):
@@ -706,7 +714,7 @@ def menu_opciones(frame_menu):
     global nombre_maestro, matricula_maestro
 
     logo_img = CTkImage(light_image=Image.open(
-        "carpeta_iconos/general/logo.jpeg"), size=(120, 50))
+        ruta_recurso("carpeta_iconos/general/logo.jpeg")), size=(120, 50))
     frame_logo = CTkFrame(frame_menu, fg_color="#003152", corner_radius=0)
     frame_logo.pack(fill="x", pady=(0, 5))
     CTkLabel(frame_logo, text="", image=logo_img,
@@ -716,7 +724,7 @@ def menu_opciones(frame_menu):
     frame_user.pack(pady=(5, 10), padx=20)
 
     avatar = crear_icono(
-        "carpeta_iconos/iconos_alumnos/avatar.png", (100, 100))
+        ruta_recurso("carpeta_iconos/iconos_alumnos/avatar.png"), (100, 100))
     CTkLabel(frame_user, text="", image=avatar).pack(pady=10)
 
     CTkLabel(frame_user, text=nombre_maestro or "Maestro", text_color="black",
@@ -728,13 +736,13 @@ def menu_opciones(frame_menu):
     frame_ops.pack(pady=10, padx=20, fill="both", expand=True)
 
     btn(frame_ops, "      Mis Grupos", crear_icono(
-        "carpeta_iconos/iconos_alumnos/hogar.png"), lambda: mis_grupos(frame_contenido))
+        ruta_recurso("carpeta_iconos/iconos_alumnos/hogar.png")), lambda: mis_grupos(frame_contenido))
     btn(frame_ops, "      Agregar Unidad", crear_icono(
-        "carpeta_iconos/iconos_alumnos/lista.png"), lambda: agregar_unidad_general(frame_contenido))
+        ruta_recurso("carpeta_iconos/iconos_alumnos/lista.png")), lambda: agregar_unidad_general(frame_contenido))
     btn(frame_ops, "      Calendario", crear_icono(
-        "carpeta_iconos/iconos_alumnos/calendario.png"), lambda: calendario_maestro(frame_contenido))
+        ruta_recurso("carpeta_iconos/iconos_alumnos/calendario.png")), lambda: calendario_maestro(frame_contenido))
     btn(frame_ops, "      Cerrar Sesión", crear_icono(
-        "carpeta_iconos/iconos_alumnos/salida.png"), cerrar_sesion)
+        ruta_recurso("carpeta_iconos/iconos_alumnos/salida.png")), cerrar_sesion)
 
 
 def btn(parent, texto, img, cmd):
@@ -1119,7 +1127,7 @@ def mis_grupos(frame):
         return
 
     folder = crear_icono(
-        "carpeta_iconos/iconos_alumnos/archivo-de-carpetas.png", (90, 90))
+        ruta_recurso("carpeta_iconos/iconos_alumnos/archivo-de-carpetas.png"), (90, 90))
     for i, (id_grupo, _, materia) in enumerate(grupos):
         r, c = i // 5, i % 5
         f = CTkFrame(cont, fg_color="white")
