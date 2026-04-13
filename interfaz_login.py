@@ -1,6 +1,14 @@
+import os
+import sys
+
 from customtkinter import *
 from funciones_login import mostrar_ocultar, generar_mensaje_login
 from PIL import Image
+
+
+def ruta_recurso(ruta_relativa):
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, ruta_relativa)
 
 set_appearance_mode("light")
 ventana_login = CTk()
@@ -9,7 +17,7 @@ ventana_login.geometry("400x450+700+300")
 ventana_login.resizable(False, False)
 
 
-fondo = CTkImage(Image.open("carpeta_iconos/general/login.jpg"), size=(400, 450))
+fondo = CTkImage(Image.open(ruta_recurso("carpeta_iconos/general/login.jpg")), size=(400, 450))
 label_fondo = CTkLabel(ventana_login, image=fondo, text="", fg_color="transparent")
 label_fondo.place(x=0, y=0, relwidth=1, relheight=1)
 
