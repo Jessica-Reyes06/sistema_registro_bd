@@ -1,3 +1,6 @@
+import os
+import sys
+
 from customtkinter import *
 from PIL import Image
 from tkcalendar import Calendar
@@ -10,6 +13,11 @@ ventana = None
 frame_contenido = None
 numero_control_alumno = None
 nombre_alumno = None
+
+
+def ruta_recurso(ruta_relativa):
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, ruta_relativa)
 
 #------------------FUNCIONES----------------
 def mostrar_maximizada():
@@ -33,7 +41,7 @@ def crear_icono_clases(frame_clases, columna, fila, nombre_grupo, maestro, mater
                             fg_color="white")
     frame_grupo_ind.grid(row=fila, column=columna, padx=5, pady=5)     
     img_grupo = CTkImage(
-        light_image=Image.open("carpeta_iconos/iconos_alumnos/archivo-de-carpetas.png"),
+        light_image=Image.open(ruta_recurso("carpeta_iconos/iconos_alumnos/archivo-de-carpetas.png")),
         size=(90, 90)
     )
     CTkButton(
@@ -68,7 +76,7 @@ def crear_icono_clases(frame_clases, columna, fila, nombre_grupo, maestro, mater
 def menu_opcioneas(frame_menu):
     global numero_control_alumno, nombre_alumno
 
-    logo_img = CTkImage(light_image=Image.open("carpeta_iconos/general/logo.jpeg"), size=(120, 50))
+    logo_img = CTkImage(light_image=Image.open(ruta_recurso("carpeta_iconos/general/logo.jpeg")), size=(120, 50))
     # Frame de fondo del color del logo
     frame_logo_bg = CTkFrame(frame_menu, fg_color="#003152", corner_radius=0)
     frame_logo_bg.pack(fill="x", pady=(0, 5), padx=0)
@@ -80,7 +88,7 @@ def menu_opcioneas(frame_menu):
     frame_usuario.pack(pady=(5,10), padx=20)
 
     img_usuario=CTkImage(
-        light_image=Image.open("carpeta_iconos/iconos_alumnos/avatar.png"),
+        light_image=Image.open(ruta_recurso("carpeta_iconos/iconos_alumnos/avatar.png")),
         size=(100, 100)
     )
     CTkLabel(frame_usuario,
@@ -359,7 +367,7 @@ def crear_opciones_menu(frame,texto,imagen,y,funcion=None):
 
 def crear_icono(ruta):
     imagen = CTkImage(
-        light_image=Image.open(ruta),
+        light_image=Image.open(ruta_recurso(ruta)),
         size=(20, 20)
     )
     return imagen
@@ -896,12 +904,12 @@ def iniciar_alumno(numero_control):
     ventana.withdraw()
     ventana.after(0, mostrar_maximizada)
 
-    img_hogar = crear_icono("carpeta_iconos/iconos_alumnos/hogar.png")
-    img_calendario = crear_icono("carpeta_iconos/iconos_alumnos/calendario.png")
-    img_notificaciones = crear_icono("carpeta_iconos/iconos_alumnos/reloj.png")
-    img_pendiente = crear_icono("carpeta_iconos/iconos_alumnos/lista.png")
-    img_cerrar_sesion = crear_icono("carpeta_iconos/iconos_alumnos/salida.png")
-    img_usuario = crear_icono("carpeta_iconos/iconos_alumnos/avatar.png")
+    img_hogar = crear_icono(ruta_recurso("carpeta_iconos/iconos_alumnos/hogar.png"))
+    img_calendario = crear_icono(ruta_recurso("carpeta_iconos/iconos_alumnos/calendario.png"))
+    img_notificaciones = crear_icono(ruta_recurso("carpeta_iconos/iconos_alumnos/reloj.png"))
+    img_pendiente = crear_icono(ruta_recurso("carpeta_iconos/iconos_alumnos/lista.png"))
+    img_cerrar_sesion = crear_icono(ruta_recurso("carpeta_iconos/iconos_alumnos/salida.png"))
+    img_usuario = crear_icono(ruta_recurso("carpeta_iconos/iconos_alumnos/avatar.png"))
 
     frame_menu= CTkFrame(ventana, 
                         width=300,
