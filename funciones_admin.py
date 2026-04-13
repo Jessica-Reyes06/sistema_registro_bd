@@ -6,6 +6,13 @@ from config_principal import calendario, limpiar_frame, crear_tarjeta
 from formularios_bd import *
 import datetime
 import os
+import sys
+
+
+def ruta_recurso(ruta_relativa):
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, ruta_relativa)
+
 def crear_tabla_editable(parent, headers, registros, tabla_sql, actualizar_callback=None):
  
     tabla = CTkFrame(parent)
@@ -108,13 +115,13 @@ def mostrar_dashboard(frame):
     for r in range(3):
         contenedor.grid_rowconfigure(r, weight=1)
 
-    icono_alumnos = CTkImage(light_image=Image.open("carpeta_iconos/iconos_admin/alumnos.png"),size=(64,64))
-    icono_maestros = CTkImage(light_image=Image.open("carpeta_iconos/iconos_admin/maestros.png"),size=(64,64))
-    icono_materias = CTkImage(light_image=Image.open("carpeta_iconos/iconos_admin/materias.png"),size=(64,64))
-    icono_grupos = CTkImage(light_image=Image.open("carpeta_iconos/iconos_admin/grupos.png"),size=(64,64))
-    icono_inscripciones = CTkImage(light_image=Image.open("carpeta_iconos/iconos_admin/inscripciones.png"),size=(64,64))
-    icono_usuarios = CTkImage(light_image=Image.open("carpeta_iconos/iconos_admin/usuario.png"),size=(64,64))
-    icono_horarios = CTkImage(light_image=Image.open("carpeta_iconos/iconos_alumnos/reloj.png"),size=(64,64)) 
+    icono_alumnos = CTkImage(light_image=Image.open(ruta_recurso("carpeta_iconos/iconos_admin/alumnos.png")),size=(64,64))
+    icono_maestros = CTkImage(light_image=Image.open(ruta_recurso("carpeta_iconos/iconos_admin/maestros.png")),size=(64,64))
+    icono_materias = CTkImage(light_image=Image.open(ruta_recurso("carpeta_iconos/iconos_admin/materias.png")),size=(64,64))
+    icono_grupos = CTkImage(light_image=Image.open(ruta_recurso("carpeta_iconos/iconos_admin/grupos.png")),size=(64,64))
+    icono_inscripciones = CTkImage(light_image=Image.open(ruta_recurso("carpeta_iconos/iconos_admin/inscripciones.png")),size=(64,64))
+    icono_usuarios = CTkImage(light_image=Image.open(ruta_recurso("carpeta_iconos/iconos_admin/usuario.png")),size=(64,64))
+    icono_horarios = CTkImage(light_image=Image.open(ruta_recurso("carpeta_iconos/iconos_alumnos/reloj.png")),size=(64,64)) 
 
     crear_tarjeta(contenedor,"Alumnos",lambda: mostrar_alumnos(frame),"#510054",icono_alumnos).grid(row=0,column=0,padx=10,pady=10)
     crear_tarjeta(contenedor,"Maestros",lambda: mostrar_maestros(frame),"#004235",icono_maestros).grid(row=0,column=1,padx=10,pady=10)
@@ -178,7 +185,7 @@ def mostrar_calendario_imagen(frame):
     cuerpo = CTkFrame(frame,fg_color="#ffffff")
     cuerpo.pack(fill="both",expand=True,padx=20,pady=10)
 
-    imagen_cal = CTkImage(light_image=Image.open("carpeta_iconos/iconos_admin/calendario.png"),size=(600,800))
+    imagen_cal = CTkImage(light_image=Image.open(ruta_recurso("carpeta_iconos/iconos_admin/calendario.png")),size=(600,800))
 
     CTkLabel(cuerpo,text="",image=imagen_cal).pack(expand=True)
 
