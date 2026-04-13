@@ -1,3 +1,6 @@
+import os
+import sys
+
 from customtkinter import *
 import customtkinter
 from PIL import Image
@@ -8,9 +11,14 @@ from funciones_admin import *
 ventana_principal = None
 
 
+def ruta_recurso(ruta_relativa):
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, ruta_relativa)
+
+
 def crear_icono(ruta, size=(20, 20)):
     return CTkImage(
-        light_image=Image.open(ruta),
+        light_image=Image.open(ruta_recurso(ruta)),
         size=size
     )
 
@@ -59,7 +67,7 @@ def iniciar_admin():
     sidebar = customtkinter.CTkFrame(ventana_principal, width=220, fg_color="#003152")
     sidebar.grid(row=0, column=0, sticky="ns")
 
-    logo_img = CTkImage(light_image=Image.open("carpeta_iconos/general/logo.jpeg"), size=(180, 60))
+    logo_img = CTkImage(light_image=Image.open(ruta_recurso("carpeta_iconos/general/logo.jpeg")), size=(180, 60))
     customtkinter.CTkLabel(
         sidebar,
         text="",
@@ -68,7 +76,7 @@ def iniciar_admin():
 
     # Avatar en la parte superior del panel izquierdo
     avatar_image = CTkImage(
-        light_image=Image.open("carpeta_iconos/iconos_admin/usuario.png"),
+        light_image=Image.open(ruta_recurso("carpeta_iconos/iconos_admin/usuario.png")),
         size=(100, 100)
     )
     customtkinter.CTkLabel(
@@ -85,13 +93,13 @@ def iniciar_admin():
     ).pack(pady=10)
 
     # Iconos para los botones del sidebar (como en Inicio_Alumnos)
-    img_inicio = crear_icono("carpeta_iconos/iconos_alumnos/hogar.png", (24, 24))
-    img_cerrar_sesion = crear_icono("carpeta_iconos/iconos_alumnos/salida.png", (24, 24))
-    img_modo = crear_icono("carpeta_iconos/iconos_alumnos/modo.png", (24, 24))
-    img_calendario = crear_icono("carpeta_iconos/iconos_alumnos/calendario.png", (24, 24))
-    img_pendientes = crear_icono("carpeta_iconos/iconos_alumnos/lista.png", (24, 24))
-    img_notificaciones = crear_icono("carpeta_iconos/iconos_alumnos/reloj.png", (24, 24))
-    img_respaldo = crear_icono("carpeta_iconos/iconos_alumnos/archivo-de-carpetas.png", (24, 24))
+    img_inicio = crear_icono(ruta_recurso("carpeta_iconos/iconos_alumnos/hogar.png"), (24, 24))
+    img_cerrar_sesion = crear_icono(ruta_recurso("carpeta_iconos/iconos_alumnos/salida.png"), (24, 24))
+    img_modo = crear_icono(ruta_recurso("carpeta_iconos/iconos_alumnos/modo.png"), (24, 24))
+    img_calendario = crear_icono(ruta_recurso("carpeta_iconos/iconos_alumnos/calendario.png"), (24, 24))
+    img_pendientes = crear_icono(ruta_recurso("carpeta_iconos/iconos_alumnos/lista.png"), (24, 24))
+    img_notificaciones = crear_icono(ruta_recurso("carpeta_iconos/iconos_alumnos/reloj.png"), (24, 24))
+    img_respaldo = crear_icono(ruta_recurso("carpeta_iconos/iconos_alumnos/archivo-de-carpetas.png"), (24, 24))
 
     # Frame clickeable para "Inicio"
     frame_inicio = customtkinter.CTkFrame(sidebar, fg_color="transparent")
