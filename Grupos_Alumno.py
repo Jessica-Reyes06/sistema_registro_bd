@@ -1,3 +1,6 @@
+import os
+import sys
+
 from customtkinter import *
 from PIL import Image
 import datetime
@@ -8,6 +11,11 @@ global id_grupo, nc_alumno, id_materia
 id_grupo = None
 nc_alumno = None
 id_materia = None
+
+
+def ruta_recurso(ruta_relativa):
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, ruta_relativa)
 
 
 #------------------FUNCIONES----------------
@@ -369,7 +377,7 @@ def boton_unidad_grupo(frame_tab, frame_detalle, titulo_unidad, actividades):
     frame_grupo.pack(pady=0, padx=5, fill="x")
 
     img_unidad = CTkImage(
-        Image.open("carpeta_iconos/iconos_alumnos/resaltador.png"),
+        Image.open(ruta_recurso("carpeta_iconos/iconos_alumnos/resaltador.png")),
         size=(30, 30)
     )
 
