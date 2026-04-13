@@ -1,4 +1,4 @@
-id_horario,id_grupo,dia,hora_inicio,hora_fin,salon
+id_horario,id_grupo,dia,hora_inicio,hora_fin,id_salon
 1,4J1,L,7:00,8:00,E105
 2,4J1,M,7:00,8:00,E105
 3,4J1,X,7:00,8:00,E105
