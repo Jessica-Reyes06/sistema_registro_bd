@@ -448,7 +448,7 @@ def mostrar_grupos(frame):
         {"texto":"Exportar CSV","color":"#184c73","comando":exportar},
     ]
 
-    headers = ["ID Grupo","Maestro","Materia","Cupo"]
+    headers = ["ID Grupo","Maestro","Materia","Cupo", "Estado"]
 
     mostrar_seccion_gestion(frame,"Gestión de Grupos","#1f6aa5","#ffffff","#8fb1cb",botones,headers,"grupos")
 
