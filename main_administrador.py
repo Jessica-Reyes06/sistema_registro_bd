@@ -7,7 +7,6 @@ from PIL import Image
 from funciones_login import cambiar_modo
 from funciones_admin import *
 
-
 ventana_principal = None
 
 
