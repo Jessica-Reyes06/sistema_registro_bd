@@ -1,6 +1,3 @@
-import os
-import sys
-
 from customtkinter import *
 from PIL import Image
 from tkcalendar import Calendar
@@ -22,11 +19,6 @@ BONUS_UNIDAD_TABLE = None
 BONUS_MATERIA_TABLE = None
 
 
-def ruta_recurso(ruta_relativa):
-    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, ruta_relativa)
-
-
 def limpiar_frame(frame):
     for w in frame.winfo_children():
         w.destroy()
@@ -46,7 +38,7 @@ def cerrar_sesion():
 
 
 def crear_icono(ruta, size=(20, 20)):
-    return CTkImage(light_image=Image.open(ruta_recurso(ruta)), size=size)
+    return CTkImage(light_image=Image.open(ruta), size=size)
 
 
 def obtener_datos_maestro(matricula):
@@ -128,6 +120,14 @@ def obtener_actividades_grupo(id_grupo):
         ORDER BY A.fecha_entrega DESC
     """
     return ejecutar_select(sql, (id_grupo,))
+
+
+def eliminar_actividad_por_id(id_grupo, id_actividad):
+    # Elimina evidencias/calificaciones asociadas para evitar conflictos de llave foránea.
+    sql_resultado = "DELETE FROM resultado WHERE id_actividad = %s"
+    sql_actividad = "DELETE FROM Actividad WHERE id_actividad = %s AND id_grupo = %s"
+    ejecutar_insert(sql_resultado, (id_actividad,))
+    ejecutar_insert(sql_actividad, (id_actividad, id_grupo))
 
 
 def obtener_alumnos_actividad(id_grupo, id_actividad):
@@ -714,7 +714,7 @@ def menu_opciones(frame_menu):
     global nombre_maestro, matricula_maestro
 
     logo_img = CTkImage(light_image=Image.open(
-        ruta_recurso("carpeta_iconos/general/logo.jpeg")), size=(120, 50))
+        "carpeta_iconos/general/logo.jpeg"), size=(120, 50))
     frame_logo = CTkFrame(frame_menu, fg_color="#003152", corner_radius=0)
     frame_logo.pack(fill="x", pady=(0, 5))
     CTkLabel(frame_logo, text="", image=logo_img,
@@ -724,7 +724,7 @@ def menu_opciones(frame_menu):
     frame_user.pack(pady=(5, 10), padx=20)
 
     avatar = crear_icono(
-        ruta_recurso("carpeta_iconos/iconos_alumnos/avatar.png"), (100, 100))
+        "carpeta_iconos/iconos_alumnos/avatar.png", (100, 100))
     CTkLabel(frame_user, text="", image=avatar).pack(pady=10)
 
     CTkLabel(frame_user, text=nombre_maestro or "Maestro", text_color="black",
@@ -736,13 +736,13 @@ def menu_opciones(frame_menu):
     frame_ops.pack(pady=10, padx=20, fill="both", expand=True)
 
     btn(frame_ops, "      Mis Grupos", crear_icono(
-        ruta_recurso("carpeta_iconos/iconos_alumnos/hogar.png")), lambda: mis_grupos(frame_contenido))
+        "carpeta_iconos/iconos_alumnos/hogar.png"), lambda: mis_grupos(frame_contenido))
     btn(frame_ops, "      Agregar Unidad", crear_icono(
-        ruta_recurso("carpeta_iconos/iconos_alumnos/lista.png")), lambda: agregar_unidad_general(frame_contenido))
+        "carpeta_iconos/iconos_alumnos/lista.png"), lambda: agregar_unidad_general(frame_contenido))
     btn(frame_ops, "      Calendario", crear_icono(
-        ruta_recurso("carpeta_iconos/iconos_alumnos/calendario.png")), lambda: calendario_maestro(frame_contenido))
+        "carpeta_iconos/iconos_alumnos/calendario.png"), lambda: calendario_maestro(frame_contenido))
     btn(frame_ops, "      Cerrar Sesión", crear_icono(
-        ruta_recurso("carpeta_iconos/iconos_alumnos/salida.png")), cerrar_sesion)
+        "carpeta_iconos/iconos_alumnos/salida.png"), cerrar_sesion)
 
 
 def btn(parent, texto, img, cmd):
@@ -845,6 +845,7 @@ def ver_grupo(frame, id_grupo):
     tabview.pack(fill="both", expand=True, padx=10, pady=10)
     tabview.add("Informacion general")
     tabview.add("Asignar actividad")
+    tabview.add("Eliminar actividad")
     tabview.add("Actividades")
     tabview.add("Bonus unidad")
     tabview.add("Bonus materia")
@@ -859,6 +860,11 @@ def ver_grupo(frame, id_grupo):
         "Asignar actividad"), fg_color="#F2FBFD")
     frame_asignar.pack(fill="both", expand=True)
     asignar_actividad(frame_asignar, id_grupo)
+
+    frame_eliminar = CTkFrame(tabview.tab(
+        "Eliminar actividades"), fg_color="#F2FBFD")
+    frame_eliminar.pack(fill="both", expand=True)
+    eliminar_actividades(frame_eliminar, id_grupo)
 
     # Frame para la pestaña "Pendientes"
     frame_pend = CTkFrame(tabview.tab("Actividades"), fg_color="#F2FBFD")
@@ -1109,6 +1115,52 @@ def pendientes(frame, id_grupo):
                      font=("Arial", 9)).pack(anchor="w", padx=10, pady=4)
 
 
+def eliminar_actividades(frame, id_grupo):
+    limpiar_frame(frame)
+    CTkLabel(frame, text="Eliminar actividades", text_color="black", anchor="w",
+             font=("Arial Rounded MT Bold", 30)).pack(fill="x", padx=10, pady=10)
+    CTkLabel(frame, text="Elimina actividades asignadas previamente en este grupo.",
+             text_color="gray", font=("Arial", 14)).pack(anchor="w", padx=12, pady=(0, 8))
+
+    estado = CTkLabel(frame, text="", text_color="gray", font=("Arial", 12))
+    estado.pack(anchor="w", padx=12, pady=(0, 6))
+
+    contenedor = CTkScrollableFrame(frame, fg_color="#F2FBFD")
+    contenedor.pack(fill="both", expand=True, padx=10, pady=10)
+
+    actividades = obtener_actividades_grupo(id_grupo)
+    if not actividades:
+        CTkLabel(contenedor, text="No hay actividades para eliminar en este grupo.",
+                 text_color="gray", font=("Arial", 14)).pack(anchor="w", padx=10, pady=10)
+        return
+
+    for id_actividad, id_unidad, nombre_actividad, fecha_entrega, descripcion, valor_porcentaje in actividades:
+        card = CTkFrame(contenedor, fg_color="white",
+                        border_width=1, border_color="#E0E0E0")
+        card.pack(fill="x", padx=5, pady=6)
+
+        CTkLabel(card, text=f"{id_actividad} - {nombre_actividad}", text_color="black",
+                 font=("Arial Rounded MT Bold", 14)).pack(anchor="w", padx=10, pady=(8, 2))
+        CTkLabel(card, text=f"Unidad: {id_unidad}    Entrega: {fecha_entrega}    Valor: {valor_porcentaje}%",
+                 text_color="#444444", font=("Arial", 12)).pack(anchor="w", padx=10, pady=2)
+        CTkLabel(card, text=f"Descripción: {descripcion}", text_color="#666666",
+                 font=("Arial", 11)).pack(anchor="w", padx=10, pady=(0, 8))
+
+        def eliminar_actual(ia=id_actividad, nom=nombre_actividad):
+            try:
+                eliminar_actividad_por_id(id_grupo, ia)
+                estado.configure(
+                    text=f"Actividad eliminada: {ia} - {nom}", text_color="#1B5E20")
+                eliminar_actividades(frame, id_grupo)
+            except Exception as ex:
+                estado.configure(
+                    text=f"No se pudo eliminar la actividad {ia}: {ex}", text_color="#B00020")
+
+        CTkButton(card, text="Eliminar", fg_color="#B00020", hover_color="#8E0000",
+                  font=("Arial Rounded MT Bold", 13), width=120,
+                  command=eliminar_actual).pack(anchor="e", padx=10, pady=(0, 10))
+
+
 def mis_grupos(frame):
     limpiar_frame(frame)
     CTkLabel(frame, text="Mis Grupos", text_color="black", anchor="w",
@@ -1127,7 +1179,7 @@ def mis_grupos(frame):
         return
 
     folder = crear_icono(
-        ruta_recurso("carpeta_iconos/iconos_alumnos/archivo-de-carpetas.png"), (90, 90))
+        "carpeta_iconos/iconos_alumnos/archivo-de-carpetas.png", (90, 90))
     for i, (id_grupo, _, materia) in enumerate(grupos):
         r, c = i // 5, i % 5
         f = CTkFrame(cont, fg_color="white")
@@ -1364,4 +1416,3 @@ def iniciar_maestro(matricula):
     menu_opciones(frame_menu)
     mis_grupos(frame_contenido)
     ventana.mainloop()
-
